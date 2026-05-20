@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ISI – Wöchentlicher Schlaffragebogen</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    background: #f5f5f3;
+    color: #1a1a1a;
+    font-size: 15px;
+    line-height: 1.6;
+    padding: 2rem 1rem;
+  }
+  .page { max-width: 640px; margin: 0 auto; }
+  header { margin-bottom: 2rem; }
+  header h1 { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+  header p { font-size: 13px; color: #666; }
+  .card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 12px;
+  }
+  .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .field label { font-size: 12px; color: #666; display: block; margin-bottom: 4px; }
+  .field input {
+    width: 100%; border: 1px solid #ddd; border-radius: 6px;
+    padding: 7px 10px; font-size: 14px; background: #fafafa; color: #1a1a1a;
+  }
+  .field input:focus { outline: 2px solid #534AB7; outline-offset: 1px; background: #fff; }
+  .setup-bar {
+    background: #eeedfe;
+    border: 1px solid #afa9ec;
+    border-radius: 10px;
+    padding: 0.9rem 1.1rem;
+    margin-bottom: 1.25rem;
+    font-size: 13px;
+    color: #3C3489;
+  }
+  .setup-bar strong { display: block; margin-bottom: 6px; font-size: 13px; }
+  .setup-bar input {
+    width: 100%; border: 1px solid #afa9ec; border-radius: 6px;
+    padding: 7px 10px; font-size: 13px; background: #fff; color: #1a1a1a;
+    margin-top: 6px;
+  }
+  .setup-bar input:focus { outline: 2px solid #534AB7; }
+  .intro {
+    font-size: 13px; color: #555; background: #f5f5f3;
+    border-radius: 8px; padding: 0.75rem 1rem;
+    margin-bottom: 1.25rem; line-height: 1.6;
+  }
+  .item-q { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .item-sub { font-size: 12px; color: #888; margin-bottom: 10px; }
+  .options { display: flex; gap: 8px; flex-wrap: wrap; }
+  .opt label { display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; }
+  .opt input[type=radio] { display: none; }
+  .opt .lbl { font-size: 11px; color: #888; text-align: center; max-width: 70px; line-height: 1.3; }
+  .opt .circle {
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 1.5px solid #ccc; background: #fafafa;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 500; color: #555;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .opt input:checked + .circle { background: #534AB7; border-color: #534AB7; color: #fff; }
+  .actions { margin-top: 1.5rem; display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn-primary {
+    padding: 10px 22px; background: #534AB7; color: #fff;
+    border: none; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer;
+  }
+  .btn-primary:hover { background: #3C3489; }
+  .btn-primary:disabled { background: #afa9ec; cursor: not-allowed; }
+  .btn-secondary {
+    padding: 10px 18px; background: #fff; color: #555;
+    border: 1px solid #ccc; border-radius: 8px; font-size: 14px; cursor: pointer;
+  }
+  .btn-secondary:hover { background: #f5f5f3; }
+  .err { color: #c0392b; font-size: 13px; margin-top: 8px; display: none; }
+  .status-msg {
+    margin-top: 10px; font-size: 13px; padding: 8px 12px;
+    border-radius: 8px; display: none;
+  }
+  .status-msg.ok { background: #e1f5ee; color: #085041; display: block; }
+  .status-msg.fail { background: #fcebeb; color: #791F1F; display: block; }
+  .result { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 1.25rem; margin-top: 1.25rem; display: none; }
+  .result.show { display: block; }
+  .result-top { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+  .score-big { font-size: 38px; font-weight: 600; }
+  .score-of { font-size: 16px; color: #888; }
+  .result-label { font-size: 15px; font-weight: 500; margin-bottom: 12px; }
+  .bar-track { height: 8px; background: #eee; border-radius: 4px; margin-bottom: 4px; }
+  .bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
+  .bar-ticks { display: flex; justify-content: space-between; font-size: 11px; color: #aaa; margin-bottom: 12px; }
+  .legend { font-size: 12px; color: #777; line-height: 1.8; border-top: 1px solid #eee; padding-top: 10px; }
+  .legend span { display: block; }
+  .print-note { font-size: 12px; color: #aaa; margin-top: 1.5rem; text-align: center; }
+  @media (max-width: 480px) { .meta-grid { grid-template-columns: 1fr; } }
+  @media print { .actions, .print-note, .setup-bar { display: none; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <h1>Wöchentlicher Schlaffragebogen (ISI)</h1>
+    <p>Insomnia Severity Index · deutsche Version</p>
+  </header>
+
+
+
+  <div class="card">
+    <div class="meta-grid">
+      <div class="field">
+        <label for="pid">Probanden-ID</label>
+        <input type="text" id="pid" placeholder="z. B. VP_001">
+      </div>
+      <div class="field">
+        <label for="wk">Woche</label>
+        <input type="text" id="wk" readonly>
+      </div>
+    </div>
+  </div>
+
+  <p class="intro">
+    Bitte beurteilen Sie die <strong>Schwere Ihrer Schlafprobleme</strong> in der <strong>letzten Woche</strong>. Wählen Sie für jede Frage die Zahl, die Ihrer Situation am besten entspricht (0 = keine / 4 = sehr stark).
+  </p>
+
+  <div id="form">
+
+    <div class="card">
+      <div class="item-q">1. Schwere der Einschlafprobleme</div>
+      <div class="options">
+        <div class="opt"><label><input type="radio" name="q1" value="0"><span class="circle">0</span><span class="lbl">Keine</span></label></div>
+        <div class="opt"><label><input type="radio" name="q1" value="1"><span class="circle">1</span><span class="lbl">Gering</span></label></div>
+        <div class="opt"><label><input type="radio" name="q1" value="2"><span class="circle">2</span><span class="lbl">Mäßig</span></label></div>
+        <div class="opt"><label><input type="radio" name="q1" value="3"><span class="circle">3</span><span class="lbl">Stark</span></label></div>
+        <div class="opt"><label><input type="radio" name="q1" value="4"><span class="circle">4</span><span class="lbl">Sehr stark</span></label></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="item-q">2. Schwere der Durchschlafprobleme</div>
+      <div class="options">
+        <div class="opt"><label><input type="radio" name="q2" value="0"><span class="circle">0</span><span class="lbl">Keine</span></label></div>
+        <div class="opt"><label><input type="radio" name="q2" value="1"><span class="circle">1</span><span class="lbl">Gering</span></label></div>
+        <div class="opt"><label><input type="radio" name="q2" value="2"><span class="circle">2</span><span class="lbl">Mäßig</span></label></div>
+        <div class="opt"><label><input type="radio" name="q2" value="3"><span class="circle">3</span><span class="lbl">Stark</span></label></div>
+        <div class="opt"><label><input type="radio" name="q2" value="4"><span class="circle">4</span><span class="lbl">Sehr stark</span></label></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="item-q">3. Schwere des frühzeitigen Erwachens</div>
+      <div class="options">
+        <div class="opt"><label><input type="radio" name="q3" value="0"><span class="circle">0</span><span class="lbl">Keine</span></label></div>
+        <div class="opt"><label><input type="radio" name="q3" value="1"><span class="circle">1</span><span class="lbl">Gering</span></label></div>
+        <div class="opt"><label><input type="radio" name="q3" value="2"><span class="circle">2</span><span class="lbl">Mäßig</span></label></div>
+        <div class="opt"><label><input type="radio" name="q3" value="3"><span class="circle">3</span><span class="lbl">Stark</span></label></div>
+        <div class="opt"><label><input type="radio" name="q3" value="4"><span class="circle">4</span><span class="lbl">Sehr stark</span></label></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="item-q">4. Zufriedenheit mit dem aktuellen Schlaf</div>
+      <div class="options">
+        <div class="opt"><label><input type="radio" name="q4" value="0"><span class="circle">0</span><span class="lbl">Sehr zufrieden</span></label></div>
+        <div class="opt"><label><input type="radio" name="q4" value="1"><span class="circle">1</span><span class="lbl">Zufrieden</span></label></div>
+        <div class="opt"><label><input type="radio" name="q4" value="2"><span class="circle">2</span><span class="lbl">Mäßig</span></label></div>
+        <div class="opt"><label><input type="radio" name="q4" value="3"><span class="circle">3</span><span class="lbl">Unzufrieden</span></label></div>
+        <div class="opt"><label><input type="radio" name="q4" value="4"><span class="circle">4</span><span class="lbl">Sehr unzufrieden</span></label></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="item-q">5. Beeinträchtigung im Alltag durch Schlafprobleme</div>
+      <div class="item-sub">z. B. Müdigkeit, Konzentration, Gedächtnis, Stimmung, Leistungsfähigkeit</div>
+      <div class="options">
+        <div class="opt"><label><input type="radio" name="q5" value="0"><span class="circle">0</span><span class="lbl">Keine</span></label></div>
+        <div class="opt"><label><input type="radio" name="q5" value="1"><span class="circle">1</span><span class="lbl">Gering</span></label></div>
+        <div class="opt"><label><input type="radio" name="q5" value="2"><span class="circle">2</span><span class="lbl">Mäßig</span></label></div>
+        <div class="opt"><label><input type="radio" name="q5" value="3"><span class="circle">3</span><span class="lbl">Stark</span></label></div>
+        <div class="opt"><label><input type="radio" name="q5" value="4"><span class="circle">4</span><span class="lbl">Sehr stark</span></label></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="item-q">6. Wie auffällig sind Ihre Schlafprobleme für andere?</div>
+      <div class="item-sub">z. B. Familie, Freunde, Kollegen</div>
+      <div class="options">
+        <div class="opt"><label><input type="radio" name="q6" value="0"><span class="circle">0</span><span class="lbl">Gar nicht</span></label></div>
+        <div class="opt"><label><input type="radio" name="q6" value="1"><span class="circle">1</span><span class="lbl">Kaum</span></label></div>
+        <div class="opt"><label><input type="radio" name="q6" value="2"><span class="circle">2</span><span class="lbl">Etwas</span></label></div>
+        <div class="opt"><label><input type="radio" name="q6" value="3"><span class="circle">3</span><span class="lbl">Sehr</span></label></div>
+        <div class="opt"><label><input type="radio" name="q6" value="4"><span class="circle">4</span><span class="lbl">Extrem</span></label></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="item-q">7. Wie belastet/besorgt sind Sie wegen Ihrer Schlafprobleme?</div>
+      <div class="options">
+        <div class="opt"><label><input type="radio" name="q7" value="0"><span class="circle">0</span><span class="lbl">Gar nicht</span></label></div>
+        <div class="opt"><label><input type="radio" name="q7" value="1"><span class="circle">1</span><span class="lbl">Kaum</span></label></div>
+        <div class="opt"><label><input type="radio" name="q7" value="2"><span class="circle">2</span><span class="lbl">Etwas</span></label></div>
+        <div class="opt"><label><input type="radio" name="q7" value="3"><span class="circle">3</span><span class="lbl">Sehr</span></label></div>
+        <div class="opt"><label><input type="radio" name="q7" value="4"><span class="circle">4</span><span class="lbl">Extrem</span></label></div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-primary" id="submitBtn" onclick="submit()">Absenden &amp; speichern</button>
+      <button class="btn-secondary" onclick="exportCSV()">Als CSV speichern</button>
+      <button class="btn-secondary" onclick="resetForm()">Zurücksetzen</button>
+    </div>
+    <p class="err" id="errMsg">Bitte alle 7 Fragen beantworten.</p>
+    <div class="status-msg" id="statusMsg"></div>
+  </div>
+
+  <div class="result" id="resultCard">
+    <div class="result-top">
+      <span class="score-big" id="scoreNum">–</span>
+      <span class="score-of">/ 28 Punkte</span>
+    </div>
+    <div class="result-label" id="resultLabel"></div>
+    <div class="bar-track"><div class="bar-fill" id="barFill"></div></div>
+    <div class="bar-ticks"><span>0</span><span>7</span><span>14</span><span>21</span><span>28</span></div>
+    <div class="legend">
+      <span>0 – 7 &nbsp;&nbsp; Keine klinisch relevante Insomnie</span>
+      <span>8 – 14 &nbsp; Unterschwellige Insomnie</span>
+      <span>15 – 21 &nbsp;Klinische Insomnie (mäßig)</span>
+      <span>22 – 28 &nbsp;Klinische Insomnie (schwer)</span>
+    </div>
+  </div>
+
+  <p class="print-note">Diese Seite kann ausgedruckt oder als PDF gespeichert werden.</p>
+
+</div>
+<script>
+  const now = new Date();
+  const fmt = d => d.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'numeric'});
+  const weekStart = new Date(now); weekStart.setDate(now.getDate() - 7);
+  document.getElementById('wk').value = fmt(weekStart) + ' – ' + fmt(now);
+
+  const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyAMMkN3n6ho2VWvaicnM979hTVHDV5nwG_tO9pxpVL85UGeXkR1ObYo9GTm2N_qPfD/exec';
+
+  function getVals() {
+    const names = ['q1','q2','q3','q4','q5','q6','q7'];
+    const vals = {};
+    for (const n of names) {
+      const sel = document.querySelector('input[name="' + n + '"]:checked');
+      if (!sel) return null;
+      vals[n] = parseInt(sel.value);
+    }
+    return vals;
+  }
+
+  function showResult(vals, total) {
+    let label, color;
+    if (total <= 7)       { label = 'Keine klinisch relevante Insomnie'; color = '#1D9E75'; }
+    else if (total <= 14) { label = 'Unterschwellige Insomnie';          color = '#EF9F27'; }
+    else if (total <= 21) { label = 'Klinische Insomnie (mäßig)';        color = '#D85A30'; }
+    else                  { label = 'Klinische Insomnie (schwer)';       color = '#A32D2D'; }
+
+    document.getElementById('scoreNum').textContent = total;
+    document.getElementById('resultLabel').textContent = label;
+    document.getElementById('resultLabel').style.color = color;
+    const fill = document.getElementById('barFill');
+    fill.style.width = Math.round(total / 28 * 100) + '%';
+    fill.style.background = color;
+    const card = document.getElementById('resultCard');
+    card.classList.add('show');
+    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  async function submit() {
+    const vals = getVals();
+    if (!vals) { document.getElementById('errMsg').style.display = 'block'; return; }
+    document.getElementById('errMsg').style.display = 'none';
+
+    const total = Object.values(vals).reduce((a, b) => a + b, 0);
+    showResult(vals, total);
+
+    const url = SHEET_URL;
+    const status = document.getElementById('statusMsg');
+
+    if (!url) {
+      status.className = 'status-msg fail';
+      status.textContent = 'Keine Web-App-URL eingetragen – Ergebnis wurde nicht übermittelt. Du kannst es als CSV speichern.';
+      return;
+    }
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Wird gesendet…';
+
+    const payload = {
+      pid: document.getElementById('pid').value || '(keine ID)',
+      woche: document.getElementById('wk').value,
+      ...vals,
+      score: total
+    };
+
+    try {
+      await fetch(url, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      status.className = 'status-msg ok';
+      status.textContent = 'Antworten erfolgreich an Google Sheets übermittelt.';
+    } catch (err) {
+      status.className = 'status-msg fail';
+      status.textContent = 'Fehler beim Senden. Bitte prüfe die URL oder speichere als CSV.';
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Absenden & speichern';
+  }
+
+  function exportCSV() {
+    const vals = getVals();
+    if (!vals) { document.getElementById('errMsg').style.display = 'block'; return; }
+    document.getElementById('errMsg').style.display = 'none';
+    const total = Object.values(vals).reduce((a, b) => a + b, 0);
+    showResult(vals, total);
+    const pid = document.getElementById('pid').value || '';
+    const wk = document.getElementById('wk').value || '';
+    const header = 'Probanden-ID,Woche,Item1,Item2,Item3,Item4,Item5,Item6,Item7,Gesamtscore\n';
+    const row = [pid, '"' + wk + '"', vals.q1, vals.q2, vals.q3, vals.q4, vals.q5, vals.q6, vals.q7, total].join(',') + '\n';
+    const blob = new Blob(['\uFEFF' + header + row], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'ISI_' + (pid || 'Proband') + '_' + fmt(now).replace(/\./g, '-') + '.csv';
+    a.click();
+  }
+
+  function resetForm() {
+    document.querySelectorAll('input[type=radio]').forEach(r => r.checked = false);
+    document.getElementById('resultCard').classList.remove('show');
+    document.getElementById('errMsg').style.display = 'none';
+    document.getElementById('statusMsg').className = 'status-msg';
+  }
+</script>
+</body>
+</html>
